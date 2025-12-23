@@ -1,2 +1,14 @@
 node_modules
 .nuxt
+.output
+.env
+.**/*
+dev.db*
+data/
+
+/app/generated/prisma
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
