@@ -48,7 +48,7 @@ Application de gestion de tournois de baby-foot (foosball) construite avec Nuxt 
 ```bash
 # Cloner le repository
 git clone <votre-repo>
-cd baby2
+cd baby-foot-tournament
 
 # Installer les dépendances
 npm install
@@ -108,7 +108,7 @@ npx prisma studio    # Interface graphique pour la BDD
 ## 🏗️ Architecture
 
 ```
-baby2/
+baby-foot-tournament/
 ├── app/                    # Code frontend Nuxt
 │   ├── pages/             # Pages de l'application
 │   ├── layouts/           # Layouts Vue
