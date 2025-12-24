@@ -4,13 +4,19 @@
       <div class="card">
         <h1 class="text-3xl font-bold text-center mb-8">Register</h1>
 
-        <form @submit.prevent="handleRegister" class="space-y-6">
+        <div v-if="success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
+          <div class="font-semibold mb-1">✓ Registration successful!</div>
+          <div class="text-sm mb-3">
+            You can now login with your credentials.
+          </div>
+          <NuxtLink to="/login" class="btn btn-primary w-full">
+            Go to Login
+          </NuxtLink>
+        </div>
+
+        <form v-else @submit.prevent="handleRegister" class="space-y-6">
           <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {{ error }}
-          </div>
-
-          <div v-if="success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-            Registration successful! You can now login.
           </div>
 
           <div>
@@ -80,8 +86,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
+
 const { register, loading } = useAuth()
-const router = useRouter()
 
 const form = reactive({
   username: '',
@@ -103,11 +110,6 @@ const handleRegister = async () => {
     form.username = ''
     form.email = ''
     form.password = ''
-
-    // Redirect to login after 7 seconds
-    setTimeout(() => {
-      router.push('/login')
-    }, 7000)
   } else {
     error.value = result.error || 'Registration failed'
   }

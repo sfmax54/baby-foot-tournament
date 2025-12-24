@@ -10,8 +10,13 @@
 
         <div v-if="success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
           <div class="font-semibold mb-1">✓ Admin created successfully!</div>
-          <div class="text-sm mb-3">You can now login with your credentials.</div>
-          <NuxtLink to="/login" class="btn btn-primary w-full">
+          <div class="text-sm mb-3">
+            You can now login with your credentials.
+            <span v-if="countdown > 0" class="block mt-2 text-xs text-green-600">
+              Auto-redirect in {{ countdown }} second{{ countdown > 1 ? 's' : '' }}...
+            </span>
+          </div>
+          <NuxtLink to="/login" class="btn btn-primary w-full" @click="cancelRedirect">
             Go to Login
           </NuxtLink>
         </div>
@@ -118,6 +123,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { navigateTo } from 'nuxt/app'
+
 const form = reactive({
   username: '',
   email: '',
@@ -128,6 +136,9 @@ const form = reactive({
 const loading = ref(false)
 const error = ref('')
 const success = ref(false)
+const countdown = ref(0)
+let redirectTimer: NodeJS.Timeout | null = null
+let countdownInterval: NodeJS.Timeout | null = null
 
 // Check on mount if admin already exists, redirect to home if so
 onMounted(async () => {
@@ -141,6 +152,42 @@ onMounted(async () => {
     console.error('Failed to check admin existence:', e)
   }
 })
+
+// Cleanup timers on unmount
+onUnmounted(() => {
+  if (redirectTimer) clearTimeout(redirectTimer)
+  if (countdownInterval) clearInterval(countdownInterval)
+})
+
+const startRedirectCountdown = () => {
+  countdown.value = 5 // 5 seconds countdown
+
+  // Update countdown every second
+  countdownInterval = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0 && countdownInterval) {
+      clearInterval(countdownInterval)
+    }
+  }, 1000)
+
+  // Redirect after 5 seconds
+  redirectTimer = setTimeout(() => {
+    navigateTo('/login')
+  }, 5000)
+}
+
+const cancelRedirect = () => {
+  // Cancel the automatic redirect
+  if (redirectTimer) {
+    clearTimeout(redirectTimer)
+    redirectTimer = null
+  }
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+  countdown.value = 0
+}
 
 const handleSubmit = async () => {
   error.value = ''
@@ -169,6 +216,9 @@ const handleSubmit = async () => {
       form.email = ''
       form.password = ''
       form.confirmPassword = ''
+
+      // Start the countdown for automatic redirect
+      startRedirectCountdown()
     }
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to create admin account'

@@ -43,9 +43,6 @@ test.describe('Tournament Management', () => {
 
     // Wait for success message
     await page.waitForSelector('text=Registration successful', { timeout: 5000 })
-
-    // Wait for auto redirection after 7 sc
-    await page.waitForURL('/login', { timeout: 10*1000 })
   }
 
   test('should create a tournament as admin', async ({ page }) => {
@@ -73,13 +70,7 @@ test.describe('Tournament Management', () => {
     await createRegularUser(page, 'user1', 'user1@example.com')
 
     // Try to access tournament creation page
-    await page.locator('a:has-text("Create your first tournament")').click()
-
-
-    //await page.goto('/tournaments/new')
-    //await page.waitForTimeout(2000)
-    // Should be redirected away
-    await expect(page).toHaveURL('/tournaments')
+    await expect(page.locator('a:has-text("Create your first tournament")')).not.toBeVisible();
   })
 
   test('should add teams to tournament as admin', async ({ page }) => {
@@ -116,7 +107,8 @@ test.describe('Tournament Management', () => {
     await loginAsAdmin(page)
 
     // Create tournament and add teams
-    await page.goto('/tournaments/new')
+    await expect(page.locator('a:has-text("Create your first tournament")')).toBeVisible()
+    await page.locator('a:has-text("Create your first tournament")').click()
     await page.fill('#name', 'Test Tournament')
     await page.click('button:has-text("Create Tournament")')
     await page.waitForURL(/\/tournaments\/.*/, { timeout: 5000 })
@@ -193,8 +185,8 @@ test.describe('Tournament Management', () => {
     await loginAsAdmin(page)
 
     // Create tournament, add teams, and generate matches
-    await page.goto('/tournaments/new')
-    await page.waitForTimeout(2000)
+    await expect(page.locator('a:has-text("Create your first tournament")')).toBeVisible()
+    await page.locator('a:has-text("Create your first tournament")').click()
     await page.fill('#name', 'Reset Test')
     await page.click('button:has-text("Create Tournament")')
     await page.waitForURL(/\/tournaments\/.*/, { timeout: 5000 })
@@ -213,6 +205,7 @@ test.describe('Tournament Management', () => {
     await page.waitForTimeout(1000)
 
     // Reset matches
+    page.once('dialog', dialog => dialog.accept())
     await page.click('button:has-text("Reset Matches")')
     page.once('dialog', dialog => dialog.accept())
     await page.waitForTimeout(1000)

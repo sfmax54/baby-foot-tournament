@@ -20,6 +20,7 @@
               required
               class="input"
               placeholder="your@email.com"
+              autocomplete="false"
             />
           </div>
 
