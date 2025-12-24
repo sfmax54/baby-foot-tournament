@@ -104,10 +104,10 @@ const handleRegister = async () => {
     form.email = ''
     form.password = ''
 
-    // Redirect to login after 2 seconds
+    // Redirect to login after 7 seconds
     setTimeout(() => {
       router.push('/login')
-    }, 2000)
+    }, 7000)
   } else {
     error.value = result.error || 'Registration failed'
   }

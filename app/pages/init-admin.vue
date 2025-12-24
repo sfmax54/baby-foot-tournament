@@ -169,11 +169,6 @@ const handleSubmit = async () => {
       form.email = ''
       form.password = ''
       form.confirmPassword = ''
-
-      // Redirect to home after 2 seconds
-      setTimeout(() => {
-        navigateTo('/')
-      }, 2000)
     }
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to create admin account'

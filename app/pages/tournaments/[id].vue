@@ -56,7 +56,7 @@
             </div>
             <div v-if="isAdmin" class="flex space-x-2">
               <button
-                @click="showEditModal = true"
+                @click="openEditModal"
                 class="btn btn-secondary"
               >
                 Edit
@@ -517,6 +517,80 @@
           </div>
         </div>
 
+        <!-- Edit Tournament Modal -->
+        <div
+          v-if="showEditModal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          @click.self="showEditModal = false"
+        >
+          <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-4">Edit Tournament</h3>
+            <form @submit.prevent="updateTournament" class="space-y-4">
+              <div v-if="editError" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {{ editError }}
+              </div>
+
+              <div>
+                <label for="edit-name" class="block text-sm font-medium text-gray-700 mb-2">
+                  Tournament Name *
+                </label>
+                <input
+                  id="edit-name"
+                  v-model="editForm.name"
+                  type="text"
+                  required
+                  class="input"
+                  placeholder="Summer Championship 2025"
+                />
+              </div>
+
+              <div>
+                <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="edit-description"
+                  v-model="editForm.description"
+                  rows="4"
+                  class="input"
+                  placeholder="Annual summer tournament for all skill levels..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="edit-date" class="block text-sm font-medium text-gray-700 mb-2">
+                  Date *
+                </label>
+                <input
+                  id="edit-date"
+                  v-model="editForm.date"
+                  type="datetime-local"
+                  required
+                  class="input"
+                />
+              </div>
+
+              <div class="flex space-x-3">
+                <button
+                  type="submit"
+                  :disabled="updatingTournament"
+                  class="btn btn-primary flex-1"
+                >
+                  <span v-if="updatingTournament">Updating...</span>
+                  <span v-else">Save Changes</span>
+                </button>
+                <button
+                  type="button"
+                  @click="showEditModal = false"
+                  class="btn btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <!-- Add Team Modal -->
         <div
           v-if="showAddTeamModal"
@@ -743,6 +817,57 @@ const matchError = ref('')
 // Other modals
 const showEditModal = ref(false)
 const generatingMatches = ref(false)
+
+// Edit tournament modal
+const editForm = reactive({
+  name: '',
+  description: '',
+  date: ''
+})
+const editError = ref('')
+const updatingTournament = ref(false)
+
+const formatDateTimeLocal = (date: string) => {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const openEditModal = () => {
+  if (tournament.value) {
+    editForm.name = tournament.value.name
+    editForm.description = tournament.value.description || ''
+    editForm.date = formatDateTimeLocal(tournament.value.date)
+    showEditModal.value = true
+  }
+}
+
+const updateTournament = async () => {
+  updatingTournament.value = true
+  editError.value = ''
+
+  try {
+    await $fetch(`/api/tournaments/${tournamentId}`, {
+      method: 'PUT',
+      body: {
+        name: editForm.name,
+        description: editForm.description || undefined,
+        date: new Date(editForm.date).toISOString()
+      }
+    })
+
+    showEditModal.value = false
+    await fetchTournament()
+  } catch (e: any) {
+    editError.value = e.data?.message || 'Failed to update tournament'
+  } finally {
+    updatingTournament.value = false
+  }
+}
 
 const getStatusClass = (status: string) => {
   const classes = {

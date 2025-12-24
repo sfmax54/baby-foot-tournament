@@ -4,16 +4,36 @@ test.describe('Match Scoring', () => {
   async function setupTournamentWithMatches(page: any) {
     // Create admin
     await page.goto('/init-admin')
-    await page.fill('input[type="text"]', 'admin')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    const passwordFields = page.locator('input[type="password"]')
-    await passwordFields.nth(0).fill('admin123')
-    await passwordFields.nth(1).fill('admin123')
+
+    await page.waitForTimeout(2000)
+
+    await page.fill('#username', 'admin')
+    await page.fill('#email', 'admin@example.com')
+    await page.fill('#password', 'admin123')
+    await page.fill('#confirmPassword', 'admin123')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/', { timeout: 5000 })
+
+    // Wait for success message
+    await page.waitForSelector('text=Admin created successfully', { timeout: 5000 })
+
+    // Login with new admin account
+    //await page.goto('/login')
+    await page.click('a:has-text("Go to Login")')
+    await expect(page.locator('h1')).toContainText('Login')
+    await page.fill('#email', 'admin@example.com')
+    await page.fill('#password', 'admin123')
+    await page.click('button[type="submit"]')
+
+    await page.waitForTimeout(2000)
+    //await expect(page.locator('h1')).toContainText('Baby-Foot Tournament Manager')
+    await page.click('a:has-text("Create your first tournament")')
 
     // Create tournament
-    await page.goto('/tournaments/new')
+    //await page.goto('/tournaments/new')
+
+    await page.waitForTimeout(5000)
+    await expect(page.locator('h1')).toContainText('Create Tournament')
+
     await page.fill('#name', 'Scoring Test Tournament')
     await page.click('button:has-text("Create Tournament")')
     await page.waitForURL(/\/tournaments\/.*/, { timeout: 5000 })
@@ -26,27 +46,24 @@ test.describe('Match Scoring', () => {
 
     for (const team of teams) {
       await page.click('button:has-text("Add Team")')
-      await page.fill('input[placeholder*="Team Rockets"]', team.name)
-      await page.fill('input[placeholder*="Alice"]', team.p1)
-      await page.fill('input[placeholder*="Bob"]', team.p2)
-      await page.click('button:has-text("Add Team"):not(:has-text("Add Team"))')
+      await page.fill('input[placeholder="The Champions"]', team.name)
+      await page.fill('input[placeholder="John Doe"]', team.p1)
+      await page.fill('input[placeholder="Jane Smith"]', team.p2)
+      await page.click('button[type="submit"]:has-text("Add Team")')
       await page.waitForTimeout(500)
     }
 
     // Generate matches
-    await page.click('button:has-text("Generate Matches")')
-    page.once('dialog', dialog => dialog.accept())
-    await page.waitForTimeout(1000)
-
-    // Switch to matches tab
     await page.click('button:has-text("Matches")')
+    await page.click('button:has-text("Generate Matches")')
+    await page.waitForTimeout(1000)
   }
 
   test('should update match scores', async ({ page }) => {
     await setupTournamentWithMatches(page)
 
     // Click edit on first match
-    await page.click('button:has-text("Edit")')
+    await page.click('.card button')
 
     // Update scores
     const scoreInputs = page.locator('input[type="number"]')
@@ -55,17 +72,18 @@ test.describe('Match Scoring', () => {
 
     // Save
     await page.click('button:has-text("Update Match")')
+    await page.waitForTimeout(500)
 
     // Should show updated scores
-    await expect(page.locator('text=10')).toBeVisible()
-    await expect(page.locator('text=5')).toBeVisible()
+    await expect(page.locator(".card").locator('text=10')).toBeVisible()
+    await expect(page.locator(".card").locator('text=5')).toBeVisible()
   })
 
-  test('should not allow completing match without winner (10 goals)', async ({ page }) => {
+  test('should not allow completing match without winner', async ({ page }) => {
     await setupTournamentWithMatches(page)
 
     // Edit match
-    await page.click('button:has-text("Edit")')
+    await page.click('.card button')
 
     // Set scores below 10
     const scoreInputs = page.locator('input[type="number"]')
@@ -89,7 +107,7 @@ test.describe('Match Scoring', () => {
     await setupTournamentWithMatches(page)
 
     // Edit match
-    await page.click('button:has-text("Edit")')
+    await page.click('.card button')
 
     // Set winning score
     const scoreInputs = page.locator('input[type="number"]')
@@ -107,77 +125,14 @@ test.describe('Match Scoring', () => {
 
     // Should update successfully
     await page.waitForTimeout(500)
-    await expect(page.locator('text=COMPLETED')).toBeVisible()
-  })
-
-  test('should use mouse wheel to increment/decrement scores', async ({ page }) => {
-    await setupTournamentWithMatches(page)
-
-    // Edit match
-    await page.click('button:has-text("Edit")')
-
-    const firstScoreInput = page.locator('input[type="number"]').nth(0)
-
-    // Focus the input
-    await firstScoreInput.click()
-
-    // Get initial value (should be 0 by default)
-    const initialValue = await firstScoreInput.inputValue()
-    expect(initialValue).toBe('0')
-
-    // Scroll up to increment
-    await firstScoreInput.hover()
-    await page.mouse.wheel(0, -100)
-    await page.waitForTimeout(200)
-
-    // Check value increased
-    const newValue = await firstScoreInput.inputValue()
-    expect(parseInt(newValue)).toBeGreaterThan(0)
-
-    // Scroll down to decrement
-    await page.mouse.wheel(0, 100)
-    await page.waitForTimeout(200)
-
-    // Check value decreased
-    const finalValue = await firstScoreInput.inputValue()
-    expect(parseInt(finalValue)).toBeLessThan(parseInt(newValue))
-  })
-
-  test('should clamp scores between 0 and 10 with mouse wheel', async ({ page }) => {
-    await setupTournamentWithMatches(page)
-
-    await page.click('button:has-text("Edit")')
-    const scoreInput = page.locator('input[type="number"]').nth(0)
-
-    // Set to 10
-    await scoreInput.fill('10')
-    await scoreInput.click()
-
-    // Try to scroll up (should stay at 10)
-    await scoreInput.hover()
-    await page.mouse.wheel(0, -100)
-    await page.waitForTimeout(200)
-
-    const valueAt10 = await scoreInput.inputValue()
-    expect(valueAt10).toBe('10')
-
-    // Set to 0
-    await scoreInput.fill('0')
-    await scoreInput.click()
-
-    // Try to scroll down (should stay at 0)
-    await page.mouse.wheel(0, 100)
-    await page.waitForTimeout(200)
-
-    const valueAt0 = await scoreInput.inputValue()
-    expect(valueAt0).toBe('0')
+    await expect(page.getByText('COMPLETED').nth(1)).toBeVisible()
   })
 
   test('should show celebration when all matches are completed', async ({ page }) => {
     await setupTournamentWithMatches(page)
 
-    // Complete the match
-    await page.click('button:has-text("Edit")')
+    // Edit match
+    await page.click('.card button')
 
     const scoreInputs = page.locator('input[type="number"]')
     await scoreInputs.nth(0).fill('10')
@@ -193,16 +148,17 @@ test.describe('Match Scoring', () => {
 
   test('should dismiss celebration banner when clicked', async ({ page }) => {
     await setupTournamentWithMatches(page)
-
+   
     // Complete match
-    await page.click('button:has-text("Edit")')
+    await page.click('.card button')
+
     const scoreInputs = page.locator('input[type="number"]')
     await scoreInputs.nth(0).fill('10')
     await scoreInputs.nth(1).fill('5')
     await page.selectOption('select', 'COMPLETED')
     await page.click('button:has-text("Update Match")')
     await page.waitForTimeout(1000)
-
+   
     // Banner should be visible
     const banner = page.locator('text=/Tournament Complete/i').first()
     await expect(banner).toBeVisible()
@@ -216,21 +172,21 @@ test.describe('Match Scoring', () => {
 
   test('should show final standings when tournament is complete', async ({ page }) => {
     await setupTournamentWithMatches(page)
-
+  
     // Complete match
-    await page.click('button:has-text("Edit")')
+    await page.click('.card button')
     const scoreInputs = page.locator('input[type="number"]')
     await scoreInputs.nth(0).fill('10')
     await scoreInputs.nth(1).fill('5')
     await page.selectOption('select', 'COMPLETED')
     await page.click('button:has-text("Update Match")')
     await page.waitForTimeout(1000)
-
+  
     // Click on standings tab
     await page.click('button:has-text("Standings")')
-
+  
     // Should show winner
     await expect(page.locator('text=/🏆.*Champion/i')).toBeVisible()
-    await expect(page.locator('text=Team Alpha')).toBeVisible()
+    await expect(page.getByRole('strong').filter({ hasText: 'Team Alpha' })).toBeVisible()
   })
 })

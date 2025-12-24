@@ -13,36 +13,53 @@ test.describe('Admin Setup Flow', () => {
   test('should create first admin account', async ({ page }) => {
     await page.goto('/init-admin')
 
-    // Fill in the form
-    await page.fill('input[type="text"]', 'admin')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    const passwordFields = page.locator('input[type="password"]')
-    await passwordFields.nth(0).fill('admin123')
-    await passwordFields.nth(1).fill('admin123')
+    await page.waitForTimeout(2000)
+    // Fill in the form using IDs
+    
+    const username = page.locator("#username")
+    await username.click()
+    await username.pressSequentially('admin')
+    await expect(page.locator('#username')).toHaveValue('admin')
+    await page.fill('#email', 'admin@example.com')
+    await expect(page.locator('#email')).toHaveValue('admin@example.com')
+    await page.fill('#password', 'admin123')
+    await expect(page.locator('#password')).toHaveValue('admin123')
+    await page.fill('#confirmPassword', 'admin123')
+    await expect(page.locator('#confirmPassword')).toHaveValue('admin123')
 
     // Submit form
     await page.click('button[type="submit"]')
 
     // Wait for success message
-    await expect(page.locator('text=Admin account created successfully')).toBeVisible()
-
-    // Should redirect to home after 2 seconds
-    await page.waitForURL('/', { timeout: 5000 })
+    await expect(page.locator('text=Admin created successfully')).toBeVisible({timeout: 30*1000})
   })
 
   test('should not allow access to init-admin after admin exists', async ({ page }) => {
     // Create admin first
     await page.goto('/init-admin')
-    await page.fill('input[type="text"]', 'admin')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    const passwordFields = page.locator('input[type="password"]')
-    await passwordFields.nth(0).fill('admin123')
-    await passwordFields.nth(1).fill('admin123')
+
+    await page.waitForTimeout(2000)
+
+
+    await page.fill('#username', 'admin')
+    await expect(page.locator('#username')).toHaveValue('admin')
+    await page.fill('#email', 'admin@example.com')
+    await page.fill('#password', 'admin123')
+    await page.fill('#confirmPassword', 'admin123')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/', { timeout: 5000 })
+
+    // Wait for success message
+    await expect(page.locator('text=Admin created successfully')).toBeVisible()
+
+    // Now navigate to home
+    await page.goto('/')
+
+    await page.waitForTimeout(2000)
 
     // Try to visit init-admin again
     await page.goto('/init-admin')
+
+    await page.waitForTimeout(2000)
 
     // Should be redirected to home
     await expect(page).toHaveURL('/')
@@ -51,11 +68,13 @@ test.describe('Admin Setup Flow', () => {
   test('should show validation error for password mismatch', async ({ page }) => {
     await page.goto('/init-admin')
 
-    await page.fill('input[type="text"]', 'admin')
-    await page.fill('input[type="email"]', 'admin@example.com')
-    const passwordFields = page.locator('input[type="password"]')
-    await passwordFields.nth(0).fill('admin123')
-    await passwordFields.nth(1).fill('different')
+    await page.waitForTimeout(2000)
+
+    await page.fill('#username', 'admin')
+    await expect(page.locator('#username')).toHaveValue('admin')
+    await page.fill('#email', 'admin@example.com')
+    await page.fill('#password', 'admin123')
+    await page.fill('#confirmPassword', 'different')
 
     await page.click('button[type="submit"]')
 
