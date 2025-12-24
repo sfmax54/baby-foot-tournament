@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including dev dependencies for build)
 RUN npm ci
 
 # Copy prisma schema
@@ -24,12 +24,15 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine
 
+# Install OpenSSL and other dependencies required by Prisma
+RUN apk add --no-cache openssl libc6-compat
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
+# Install production dependencies only (includes prisma and @prisma/client)
 RUN npm ci --omit=dev
 
 # Copy prisma schema and generate client
@@ -38,6 +41,12 @@ RUN npx prisma generate
 
 # Copy built application from builder
 COPY --from=builder /app/.output ./.output
+
+# Copy Prisma Client to the output directory where Nuxt expects it
+RUN mkdir -p .output/server/node_modules/.prisma && \
+    mkdir -p .output/server/node_modules/@prisma && \
+    cp -r node_modules/.prisma/client .output/server/node_modules/.prisma/ && \
+    cp -r node_modules/@prisma/client .output/server/node_modules/@prisma/
 
 # Create directory for SQLite database
 RUN mkdir -p /app/data
