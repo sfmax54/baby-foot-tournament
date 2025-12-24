@@ -10,57 +10,61 @@
               <span class="text-xl font-bold text-primary-600">Baby-Foot Manager</span>
             </NuxtLink>
 
-            <div v-if="isAuthenticated" class="ml-10 flex items-baseline space-x-4">
-              <NuxtLink
-                to="/tournaments"
-                class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
-              >
-                All Tournaments
-              </NuxtLink>
-              <NuxtLink
-                v-if="!isAdmin"
-                to="/join"
-                class="px-3 py-2 rounded-md text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-              >
-                Join Tournament
-              </NuxtLink>
-              <NuxtLink
-                v-if="isAdmin"
-                to="/tournaments/new"
-                class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
-              >
-                Create Tournament
-              </NuxtLink>
-            </div>
+            <ClientOnly>
+              <div v-if="isAuthenticated" class="ml-10 flex items-baseline space-x-4">
+                <NuxtLink
+                  to="/tournaments"
+                  class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
+                >
+                  All Tournaments
+                </NuxtLink>
+                <NuxtLink
+                  v-if="!isAdmin"
+                  to="/join"
+                  class="px-3 py-2 rounded-md text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                >
+                  Join Tournament
+                </NuxtLink>
+                <NuxtLink
+                  v-if="isAdmin"
+                  to="/tournaments/new"
+                  class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
+                >
+                  Create Tournament
+                </NuxtLink>
+              </div>
+            </ClientOnly>
           </div>
 
-          <div class="flex items-center space-x-4">
-            <template v-if="isAuthenticated">
-              <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-700">{{ user?.username }}</span>
-                <span
-                  v-if="isAdmin"
-                  class="px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800"
+          <ClientOnly>
+            <div class="flex items-center space-x-4">
+              <template v-if="isAuthenticated">
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-700">{{ user?.username }}</span>
+                  <span
+                    v-if="isAdmin"
+                    class="px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800"
+                  >
+                    ADMIN
+                  </span>
+                </div>
+                <button
+                  @click="logout"
+                  class="btn btn-secondary text-sm"
                 >
-                  ADMIN
-                </span>
-              </div>
-              <button
-                @click="logout"
-                class="btn btn-secondary text-sm"
-              >
-                Logout
-              </button>
-            </template>
-            <template v-else>
-              <NuxtLink to="/login" class="btn btn-secondary text-sm">
-                Login
-              </NuxtLink>
-              <NuxtLink to="/register" class="btn btn-primary text-sm">
-                Register
-              </NuxtLink>
-            </template>
-          </div>
+                  Logout
+                </button>
+              </template>
+              <template v-else>
+                <NuxtLink to="/login" class="btn btn-secondary text-sm">
+                  Login
+                </NuxtLink>
+                <NuxtLink to="/register" class="btn btn-primary text-sm">
+                  Register
+                </NuxtLink>
+              </template>
+            </div>
+          </ClientOnly>
         </div>
       </div>
     </nav>
@@ -99,10 +103,5 @@
 </template>
 
 <script setup lang="ts">
-const { user, logout, isAdmin, isAuthenticated, fetchUser } = useAuth()
-
-// Fetch user on mount
-onMounted(async () => {
-  await fetchUser()
-})
+const { user, logout, isAdmin, isAuthenticated } = useAuth()
 </script>

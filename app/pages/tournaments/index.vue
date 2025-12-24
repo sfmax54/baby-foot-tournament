@@ -33,18 +33,24 @@
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
-          v-for="tournament in tournaments"
+          v-for="tournament in sortedTournaments"
           :key="tournament.id"
-          class="card hover:shadow-xl transition-shadow cursor-pointer"
+          :class="[
+            'card hover:shadow-xl transition-all cursor-pointer',
+            tournament.status === 'COMPLETED' ? 'opacity-75 bg-gray-50 border-2 border-gray-300' : ''
+          ]"
           @click="$router.push(`/tournaments/${tournament.id}`)"
         >
           <div class="flex justify-between items-start mb-4">
-            <h3 class="text-xl font-semibold">{{ tournament.name }}</h3>
+            <div class="flex items-center gap-2">
+              <h3 class="text-xl font-semibold">{{ tournament.name }}</h3>
+              <span v-if="tournament.status === 'COMPLETED'" class="text-xl">🏆</span>
+            </div>
             <span
               :class="getStatusClass(tournament.status)"
-              class="px-2 py-1 text-xs font-semibold rounded-full"
+              class="px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap"
             >
-              {{ tournament.status }}
+              {{ getStatusLabel(tournament.status) }}
             </span>
           </div>
 
@@ -75,11 +81,34 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 const { isAdmin } = useAuth()
 
 const tournaments = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
+
+// Sort tournaments: active (UPCOMING, IN_PROGRESS) first, then COMPLETED
+const sortedTournaments = computed(() => {
+  return [...tournaments.value].sort((a, b) => {
+    const statusOrder = {
+      IN_PROGRESS: 1,
+      UPCOMING: 2,
+      COMPLETED: 3,
+      CANCELLED: 4
+    }
+    const orderA = statusOrder[a.status as keyof typeof statusOrder] || 99
+    const orderB = statusOrder[b.status as keyof typeof statusOrder] || 99
+
+    if (orderA !== orderB) {
+      return orderA - orderB
+    }
+
+    // If same status, sort by date (most recent first)
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
+})
 
 const getStatusClass = (status: string) => {
   const classes = {
@@ -89,6 +118,16 @@ const getStatusClass = (status: string) => {
     CANCELLED: 'bg-red-100 text-red-800'
   }
   return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800'
+}
+
+const getStatusLabel = (status: string) => {
+  const labels = {
+    UPCOMING: 'UPCOMING',
+    IN_PROGRESS: 'IN PROGRESS',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED'
+  }
+  return labels[status as keyof typeof labels] || status
 }
 
 const formatDate = (date: string) => {

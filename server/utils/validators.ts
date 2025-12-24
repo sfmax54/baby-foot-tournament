@@ -33,6 +33,12 @@ export const createTeamSchema = z.object({
   player2Name: z.string().min(1).max(100)
 })
 
+// User team registration schema
+export const registerTeamSchema = z.object({
+  name: z.string().min(1).max(100),
+  partnerEmail: z.string().email()
+})
+
 export const updateTeamSchema = createTeamSchema.partial()
 
 // Match schemas

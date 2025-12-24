@@ -1,6 +1,8 @@
 export default defineEventHandler((event) => {
   // Delete the auth cookie
-  deleteCookie(event, 'auth_token')
+  deleteCookie(event, 'auth_token', {
+    path: '/'
+  })
 
   return {
     success: true,

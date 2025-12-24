@@ -13,6 +13,18 @@ export default defineEventHandler(async (event) => {
   // Extract token from cookie
   const token = getCookie(event, 'auth_token')
 
+  // Special handling for /api/auth/me - optional auth
+  if (event.path === '/api/auth/me') {
+    if (token) {
+      const payload = verifyToken(token)
+      if (payload) {
+        event.context.user = payload
+      }
+    }
+    return
+  }
+
+  // For all other API routes, require authentication
   if (!token) {
     throw createError({
       statusCode: 401,

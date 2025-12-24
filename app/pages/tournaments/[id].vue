@@ -109,13 +109,21 @@
 
         <!-- Teams Tab -->
         <div v-if="activeTab === 'teams'" class="space-y-6">
-          <div v-if="isAdmin" class="flex justify-between items-center">
+          <div class="flex justify-between items-center">
             <h2 class="text-2xl font-semibold">Teams</h2>
             <button
+              v-if="isAdmin"
               @click="showAddTeamModal = true"
               class="btn btn-primary"
             >
               + Add Team
+            </button>
+            <button
+              v-else-if="user && !userHasTeam"
+              @click="openRegisterModal"
+              class="btn btn-primary"
+            >
+              + Register Team
             </button>
           </div>
 
@@ -128,16 +136,31 @@
             >
               Add First Team
             </button>
+            <button
+              v-else-if="user && !userHasTeam"
+              @click="openRegisterModal"
+              class="btn btn-primary"
+            >
+              Register First Team
+            </button>
           </div>
 
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               v-for="team in teams"
               :key="team.id"
-              class="card"
+              :class="[
+                'card',
+                isUserInTeam(team) ? 'ring-2 ring-primary-500 bg-primary-50' : ''
+              ]"
             >
               <div class="flex justify-between items-start mb-3">
-                <h3 class="text-lg font-semibold">{{ team.name }}</h3>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-lg font-semibold">{{ team.name }}</h3>
+                  <span v-if="isUserInTeam(team)" class="px-2 py-1 text-xs font-semibold bg-primary-500 text-white rounded-full">
+                    Your Team
+                  </span>
+                </div>
                 <button
                   v-if="isAdmin"
                   @click="deleteTeam(team.id)"
@@ -146,7 +169,7 @@
                   Delete
                 </button>
               </div>
-              <div class="space-y-1 text-sm text-gray-600">
+              <div class="space-y-1 text-sm text-gray-600 mb-3">
                 <!-- Show registered users if available -->
                 <template v-if="team.members && team.members.length > 0">
                   <div v-for="(member, idx) in team.members" :key="member.id">
@@ -159,6 +182,20 @@
                   <div>Player 1: {{ team.player1Name }}</div>
                   <div>Player 2: {{ team.player2Name }}</div>
                 </template>
+              </div>
+
+              <!-- Leave team button for user's own team -->
+              <div v-if="isUserInTeam(team) && !isAdmin" class="mt-3 pt-3 border-t border-gray-200">
+                <button
+                  v-if="matches.length === 0"
+                  @click="confirmLeaveTeam(team.id)"
+                  class="w-full text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  Leave Team
+                </button>
+                <div v-else class="text-xs text-gray-500 italic text-center">
+                  Cannot leave team - matches already generated
+                </div>
               </div>
             </div>
           </div>
@@ -376,13 +413,35 @@
               <div class="relative flex items-center justify-center">
                 <span class="text-5xl mr-4 animate-pulse">🏆</span>
                 <div class="text-center">
-                  <h3 class="text-2xl font-bold text-green-900 mb-2">🎉 Tournament Champion! 🎉</h3>
-                  <p class="text-lg text-green-700">
-                    Congratulations to <strong class="text-xl text-yellow-700">{{ standings[0]?.team.name }}</strong>
-                  </p>
-                  <p class="text-sm text-gray-600 mt-1">
-                    with {{ standings[0]?.stats.points }} points and {{ standings[0]?.stats.wins }} wins!
-                  </p>
+                  <!-- Multiple champions (tie) -->
+                  <template v-if="champions.length > 1">
+                    <h3 class="text-2xl font-bold text-green-900 mb-2">🎉 Tournament Co-Champions! 🎉</h3>
+                    <p class="text-lg text-green-700 mb-1">
+                      Tied for first place:
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-2 mb-2">
+                      <strong
+                        v-for="champion in champions"
+                        :key="champion.team.id"
+                        class="text-xl text-yellow-700"
+                      >
+                        {{ champion.team.name }}
+                      </strong>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      with {{ champions[0]?.stats.points }} points, {{ champions[0]?.stats.goalDifference > 0 ? '+' : '' }}{{ champions[0]?.stats.goalDifference }} goal difference
+                    </p>
+                  </template>
+                  <!-- Single champion -->
+                  <template v-else>
+                    <h3 class="text-2xl font-bold text-green-900 mb-2">🎉 Tournament Champion! 🎉</h3>
+                    <p class="text-lg text-green-700">
+                      Congratulations to <strong class="text-xl text-yellow-700">{{ standings[0]?.team.name }}</strong>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      with {{ standings[0]?.stats.points }} points and {{ standings[0]?.stats.wins }} wins!
+                    </p>
+                  </template>
                 </div>
               </div>
             </div>
@@ -577,7 +636,7 @@
                   class="btn btn-primary flex-1"
                 >
                   <span v-if="updatingTournament">Updating...</span>
-                  <span v-else">Save Changes</span>
+                  <span v-else>Save Changes</span>
                 </button>
                 <button
                   type="button"
@@ -655,6 +714,107 @@
                 <button
                   type="button"
                   @click="showAddTeamModal = false"
+                  class="btn btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Register Team Modal (for non-admin users) -->
+        <div
+          v-if="showRegisterTeamModal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          @click.self="showRegisterTeamModal = false"
+        >
+          <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-4">Register Your Team</h3>
+            <form @submit.prevent="registerTeam" class="space-y-4">
+              <div v-if="registerSuccess" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                {{ registerSuccess }}
+              </div>
+              <div v-if="registerError" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {{ registerError }}
+              </div>
+
+              <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mb-4">
+                <p class="font-semibold mb-1">How it works:</p>
+                <ul class="list-disc list-inside space-y-1 text-xs">
+                  <li>Enter your team name and your partner's email</li>
+                  <li>Your partner must have an account</li>
+                  <li>You can only have one team per tournament</li>
+                </ul>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Team Name *
+                </label>
+                <input
+                  v-model="registerForm.name"
+                  type="text"
+                  required
+                  class="input"
+                  placeholder="The Champions"
+                />
+              </div>
+
+              <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Partner Email *
+                </label>
+                <input
+                  v-model="registerForm.partnerEmail"
+                  type="email"
+                  required
+                  class="input"
+                  placeholder="partner@example.com"
+                  @focus="emailInputFocused = true"
+                  @blur="handleEmailBlur"
+                  autocomplete="off"
+                />
+
+                <!-- Email suggestions dropdown -->
+                <div
+                  v-if="emailInputFocused && emailSuggestions.length > 0"
+                  class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                >
+                  <button
+                    v-for="suggestion in emailSuggestions"
+                    :key="suggestion.id"
+                    type="button"
+                    @click="selectEmail(suggestion.email)"
+                    class="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center justify-between"
+                  >
+                    <div>
+                      <div class="font-medium text-sm">{{ suggestion.username }}</div>
+                      <div class="text-xs text-gray-500">{{ suggestion.email }}</div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-1">
+                  Your partner must have an account. If they don't, ask them to register first.
+                </p>
+              </div>
+
+              <div class="flex space-x-3">
+                <button
+                  type="submit"
+                  :disabled="registeringTeam"
+                  class="btn btn-primary flex-1"
+                >
+                  <span v-if="registeringTeam">Registering...</span>
+                  <span v-else>Register Team</span>
+                </button>
+                <button
+                  type="button"
+                  @click="showRegisterTeamModal = false"
                   class="btn btn-secondary flex-1"
                 >
                   Cancel
@@ -775,7 +935,9 @@
 </template>
 
 <script setup lang="ts">
-const { isAdmin } = useAuth()
+import { computed } from 'vue'
+
+const { isAdmin, user } = useAuth()
 const route = useRoute()
 const router = useRouter()
 
@@ -866,6 +1028,127 @@ const updateTournament = async () => {
     editError.value = e.data?.message || 'Failed to update tournament'
   } finally {
     updatingTournament.value = false
+  }
+}
+
+// Register team modal (for non-admin users)
+const showRegisterTeamModal = ref(false)
+const registerForm = reactive({
+  name: '',
+  partnerEmail: ''
+})
+const registeringTeam = ref(false)
+const registerError = ref('')
+const registerSuccess = ref('')
+const allUsers = ref<any[]>([])
+const showEmailSuggestions = ref(false)
+const emailInputFocused = ref(false)
+
+// Filtered email suggestions
+const emailSuggestions = computed(() => {
+  if (!registerForm.partnerEmail || !emailInputFocused.value) return []
+
+  const searchTerm = registerForm.partnerEmail.toLowerCase()
+  return allUsers.value
+    .filter(u =>
+      u.email.toLowerCase().includes(searchTerm) ||
+      u.username.toLowerCase().includes(searchTerm)
+    )
+    .filter(u => u.email !== user.value?.email) // Exclude current user
+    .slice(0, 5) // Limit to 5 suggestions
+})
+
+// Get all teams at position 1 (champions, handles ties)
+const champions = computed(() => {
+  return standings.value.filter(standing => standing.position === 1)
+})
+
+// Fetch users when modal opens
+const openRegisterModal = async () => {
+  showRegisterTeamModal.value = true
+  if (allUsers.value.length === 0) {
+    try {
+      const response = await $fetch('/api/users')
+      allUsers.value = response.users
+    } catch (e) {
+      console.error('Failed to load users:', e)
+    }
+  }
+}
+
+// Select email from suggestions
+const selectEmail = (email: string) => {
+  registerForm.partnerEmail = email
+  showEmailSuggestions.value = false
+  emailInputFocused.value = false
+}
+
+// Handle blur with delay to allow click on suggestions
+const handleEmailBlur = () => {
+  setTimeout(() => {
+    emailInputFocused.value = false
+  }, 200)
+}
+
+// Check if current user already has a team in this tournament
+const userHasTeam = computed(() => {
+  if (!user.value || !teams.value) return false
+  return teams.value.some(team =>
+    team.members?.some((member: any) => member.userId === user.value.id)
+  )
+})
+
+const registerTeam = async () => {
+  registeringTeam.value = true
+  registerError.value = ''
+  registerSuccess.value = ''
+
+  try {
+    await $fetch(`/api/tournaments/${tournamentId}/register`, {
+      method: 'POST',
+      body: {
+        name: registerForm.name,
+        partnerEmail: registerForm.partnerEmail
+      }
+    })
+
+    // Close modal immediately
+    showRegisterTeamModal.value = false
+
+    // Clear form
+    registerForm.name = ''
+    registerForm.partnerEmail = ''
+
+    // Reload the page to show the updated team list with confirmation
+    window.location.reload()
+  } catch (e: any) {
+    registerError.value = e.data?.message || 'Failed to register team'
+  } finally {
+    registeringTeam.value = false
+  }
+}
+
+// Check if user is in a specific team
+const isUserInTeam = (team: any) => {
+  if (!user.value || !team.members) return false
+  return team.members.some((member: any) => member.userId === user.value.id)
+}
+
+// Leave team functionality
+const confirmLeaveTeam = async (teamId: string) => {
+  if (!confirm('Are you sure you want to leave this team? This action cannot be undone.')) {
+    return
+  }
+
+  try {
+    await $fetch(`/api/teams/${teamId}/leave`, {
+      method: 'POST'
+    })
+
+    // Redirect to tournaments list
+    navigateTo('/tournaments')
+  } catch (e: any) {
+    alert(e.data?.message || 'Failed to leave team')
   }
 }
 

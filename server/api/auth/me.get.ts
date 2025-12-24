@@ -1,5 +1,15 @@
 export default defineEventHandler(async (event) => {
-  const currentUser = getCurrentUser(event)
+  // Check if user is authenticated (via context set by middleware)
+  const currentUser = event.context.user
+
+  // If no user in context, return not authenticated (no error)
+  if (!currentUser) {
+    return {
+      success: false,
+      user: null,
+      authenticated: false
+    }
+  }
 
   // Get full user details from database
   const user = await prisma.user.findUnique({
@@ -14,14 +24,16 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!user) {
-    throw createError({
-      statusCode: 404,
-      message: 'User not found'
-    })
+    return {
+      success: false,
+      user: null,
+      authenticated: false
+    }
   }
 
   return {
     success: true,
-    user
+    user,
+    authenticated: true
   }
 })

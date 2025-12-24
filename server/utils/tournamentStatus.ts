@@ -152,20 +152,48 @@ export async function calculateStandings(tournamentId: string) {
     }
   })
 
-  // Sort by: points DESC, goal difference DESC, goals for DESC
+  // Sort by: points DESC, goal difference DESC, goals for DESC, goals against ASC, team name ASC
   standings.sort((a, b) => {
+    // 1. Points (primary criterion)
     if (b.stats.points !== a.stats.points) {
       return b.stats.points - a.stats.points
     }
+    // 2. Goal difference (secondary criterion)
     if (b.stats.goalDifference !== a.stats.goalDifference) {
       return b.stats.goalDifference - a.stats.goalDifference
     }
-    return b.stats.goalsFor - a.stats.goalsFor
+    // 3. Goals for (tertiary criterion)
+    if (b.stats.goalsFor !== a.stats.goalsFor) {
+      return b.stats.goalsFor - a.stats.goalsFor
+    }
+    // 4. Goals against - fewer is better (quaternary criterion)
+    if (a.stats.goalsAgainst !== b.stats.goalsAgainst) {
+      return a.stats.goalsAgainst - b.stats.goalsAgainst
+    }
+    // 5. Team name alphabetically (for stable sorting when perfect tie)
+    return a.team.name.localeCompare(b.team.name)
   })
 
-  // Add position
-  return standings.map((standing, index) => ({
-    position: index + 1,
-    ...standing
-  }))
+  // Add position with tie handling
+  let currentPosition = 1
+  return standings.map((standing, index) => {
+    // If not first team, check if tied with previous team
+    if (index > 0) {
+      const prev = standings[index - 1]
+      const isTied =
+        standing.stats.points === prev.stats.points &&
+        standing.stats.goalDifference === prev.stats.goalDifference &&
+        standing.stats.goalsFor === prev.stats.goalsFor &&
+        standing.stats.goalsAgainst === prev.stats.goalsAgainst
+
+      if (!isTied) {
+        currentPosition = index + 1
+      }
+    }
+
+    return {
+      position: currentPosition,
+      ...standing
+    }
+  })
 }
