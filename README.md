@@ -1,4 +1,4 @@
-# 🏓 Baby-Foot Tournament Manager
+# ⚽💥 Baby-Foot Tournament Manager
 
 Application de gestion de tournois de baby-foot (foosball) construite avec Nuxt 3, Prisma et SQLite.
 
@@ -7,11 +7,11 @@ Application de gestion de tournois de baby-foot (foosball) construite avec Nuxt 
 ### Gestion des tournois
 - ✅ Création et gestion de tournois
 - ✅ Système de rôles (Admin/Utilisateur)
-- ✅ Inscription d'équipes par les joueurs
+- ✅ Inscription d'équipes par les joueurs avec autocomplete
 - ✅ Ajout d'équipes invitées par les admins
 - ✅ Génération automatique des matchs en round-robin
 - ✅ Verrouillage des inscriptions après génération des matchs
-- ✅ Réinitialisation des matchs pour rouvrir les inscriptions
+- ✅ Possibilité de quitter une équipe avant génération des matchs
 
 ### Matchs et scores
 - ✅ Système de scoring en temps réel
@@ -19,13 +19,15 @@ Application de gestion de tournois de baby-foot (foosball) construite avec Nuxt 
 - ✅ Incrémentation/décrémentation des scores avec la molette de souris
 - ✅ Mise à jour des statuts de match (À venir, En cours, Terminé)
 - ✅ Calcul automatique du statut du tournoi
+- ✅ Classement avec gestion des égalités (5 critères)
 
 ### Interface utilisateur
 - ✅ Design responsive avec Tailwind CSS
 - ✅ Célébration visuelle à la fin d'un tournoi
+- ✅ Gestion des co-champions en cas d'égalité parfaite
 - ✅ Classement en temps réel basé sur les victoires et différence de buts
-- ✅ Bannière de célébration dismissible
-- ✅ Indicateurs visuels pour les vainqueurs
+- ✅ Indicateurs visuels pour les équipes de l'utilisateur connecté
+- ✅ Distinction visuelle des tournois terminés dans la liste
 
 ### Sécurité
 - ✅ Authentification JWT avec cookies HTTP-only
@@ -69,25 +71,6 @@ L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 2. Créez le premier compte administrateur
 3. Vous pourrez ensuite créer des tournois et gérer l'application
 
-## 🐳 Déploiement avec Docker
-
-Pour déployer l'application avec Docker, consultez le guide détaillé : [DOCKER.md](DOCKER.md)
-
-### Démarrage rapide avec Docker Compose
-
-```bash
-# Lancer l'application
-docker-compose up -d
-
-# Voir les logs
-docker-compose logs -f
-
-# Arrêter l'application
-docker-compose down
-```
-
-L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
-
 ## 📝 Scripts disponibles
 
 ### Développement
@@ -128,8 +111,9 @@ npx prisma studio    # Interface graphique pour la BDD
 baby2/
 ├── app/                    # Code frontend Nuxt
 │   ├── pages/             # Pages de l'application
-│   ├── components/        # Composants Vue (si utilisés)
-│   └── composables/       # Composables Vue
+│   ├── layouts/           # Layouts Vue
+│   ├── composables/       # Composables Vue
+│   └── plugins/           # Plugins Nuxt
 ├── server/                # Code backend
 │   ├── api/              # Endpoints API
 │   ├── middleware/       # Middleware serveur
@@ -151,13 +135,6 @@ baby2/
   - E2E: [Playwright](https://playwright.dev/)
 - **Containerization**: Docker
 
-## 📊 Statistiques
-
-- **94 tests unitaires** passants
-- **Couverture de code** complète sur l'API
-- **Tests E2E** pour les flux utilisateurs principaux
-- **Architecture** scalable et maintenable
-
 ## 🔐 Sécurité
 
 - Tokens JWT stockés dans des cookies HTTP-only
@@ -168,9 +145,31 @@ baby2/
 
 ## 📖 Documentation
 
-- [Guide de déploiement Docker](DOCKER.md)
-- [Documentation des tests E2E](e2e/README.md)
-- [API Documentation](API_README.md)
+- [Guide Frontend](app/README.md) - Documentation de l'interface utilisateur
+- [Guide API](docs/API.md) - Documentation complète de l'API REST
+- [Guide des Tests E2E](e2e/README.md) - Documentation des tests end-to-end
+- [Guide des Tests Unitaires](tests/README.md) - Documentation des tests unitaires
+- [Guide de déploiement Docker](docs/DOCKER.md) - Déploiement avec Docker
+- [Configuration Admin](docs/ADMIN_SETUP.md) - Comment créer un compte administrateur
+
+## 🐳 Déploiement avec Docker
+
+Pour déployer l'application avec Docker, consultez le guide détaillé : [docs/DOCKER.md](docs/DOCKER.md)
+
+### Démarrage rapide avec Docker Compose
+
+```bash
+# Lancer l'application
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f
+
+# Arrêter l'application
+docker-compose down
+```
+
+L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 
 ## 🤝 Contribution
 
@@ -179,15 +178,6 @@ Les contributions sont les bienvenues! N'hésitez pas à ouvrir une issue ou une
 ## 📄 Licence
 
 MIT
-
-## 🎯 Roadmap
-
-- [ ] Système de notifications en temps réel
-- [ ] Export des résultats en PDF
-- [ ] Statistiques avancées des joueurs
-- [ ] Support multi-langue
-- [ ] Mode tournoi à élimination directe
-- [ ] Intégration avec des services de calendrier
 
 ## 👥 Auteurs
 
