@@ -52,10 +52,12 @@ export const useAuth = () => {
       await $fetch('/api/auth/logout', {
         method: 'POST'
       })
-      user.value = null
-      await navigateTo('/login')
     } catch (error) {
       console.error('Logout failed:', error)
+    } finally {
+      // Always clear user state and redirect, even if API call fails
+      user.value = null
+      await navigateTo('/login')
     }
   }
 
