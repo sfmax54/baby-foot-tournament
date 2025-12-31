@@ -13,7 +13,7 @@
         <!-- Tournament Completed Celebration Banner -->
         <div
           v-if="tournament.status === 'COMPLETED' && !bannerDismissed"
-          class="mb-6 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 border-4 border-yellow-500 rounded-lg p-6 text-center shadow-lg animate-pulse relative"
+          class="mb-6 bg-yellow-300 border-4 border-yellow-500 rounded-lg p-6 text-center shadow-lg animate-pulse relative"
         >
           <button
             @click="bannerDismissed = true"
@@ -403,7 +403,7 @@
 
           <div v-else>
             <!-- Status banner -->
-            <div v-if="tournament?.status === 'COMPLETED'" class="relative bg-gradient-to-r from-green-50 via-yellow-50 to-green-50 border-2 border-green-300 rounded-lg p-6 mb-6 overflow-hidden">
+            <div v-if="tournament?.status === 'COMPLETED'" class="relative bg-green-50 border-2 border-green-300 rounded-lg p-6 mb-6 overflow-hidden">
               <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
                 <div class="absolute top-2 left-[10%] text-2xl animate-bounce">🎉</div>
                 <div class="absolute top-4 right-[15%] text-2xl animate-bounce" style="animation-delay: 0.2s">🎊</div>

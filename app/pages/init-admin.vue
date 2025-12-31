@@ -5,14 +5,12 @@
         <!-- Logo and Title -->
         <div class="text-center mb-8">
           <div class="flex justify-center mb-4">
-            <div class="w-20 h-20 bg-gradient-to-br from-primary-500 via-secondary-500 to-accent-500 rounded-box flex items-center justify-center shadow-strong">
+            <div class="w-20 h-20 bg-gray-700 rounded-box flex items-center justify-center shadow-strong">
               <span class="text-5xl">🔐</span>
             </div>
           </div>
-          <h1 class="text-4xl font-bold mb-2">
-            <span class="bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 bg-clip-text text-transparent">
+          <h1 class="text-4xl font-bold mb-2 text-gray-900">
               Initialize Admin
-            </span>
           </h1>
           <p class="text-gray-600">Create the first administrator account</p>
         </div>
@@ -20,7 +18,7 @@
         <!-- Form Card -->
         <div class="bg-white rounded-box shadow-strong p-8 border-2 border-gray-100">
           <div v-if="success" class="space-y-4">
-            <div class="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 text-green-700 px-4 py-4 rounded-field">
+            <div class="bg-green-50 border-2 border-green-300 text-green-700 px-4 py-4 rounded-field">
               <div class="flex items-center space-x-2 mb-2">
                 <span class="text-2xl">✓</span>
                 <span class="font-bold text-lg">Admin created successfully!</span>
@@ -39,19 +37,19 @@
             <NuxtLink
               to="/login"
               @click="cancelRedirect"
-              class="w-full py-3 rounded-field text-base font-bold bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:from-primary-600 hover:to-secondary-600 shadow-medium transition-all transform hover:scale-[1.02] flex items-center justify-center"
+              class="w-full py-3 rounded-field text-base font-bold bg-primary-500 text-white hover:bg-primary-600 shadow-medium transition-all flex items-center justify-center"
             >
               Go to Login
             </NuxtLink>
           </div>
 
           <form v-else @submit.prevent="handleSubmit" class="space-y-5">
-            <div v-if="error" class="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 text-red-700 px-4 py-3 rounded-field flex items-center space-x-2">
+            <div v-if="error" class="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-field flex items-center space-x-2">
               <span class="text-xl">⚠️</span>
               <span class="font-medium">{{ error }}</span>
             </div>
 
-            <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 text-yellow-800 px-4 py-3 rounded-field">
+            <div class="bg-yellow-50 border-2 border-yellow-300 text-yellow-800 px-4 py-3 rounded-field">
               <div class="flex items-center space-x-2 mb-1">
                 <span class="text-lg">⚠️</span>
                 <span class="font-bold text-sm">Important</span>
@@ -125,7 +123,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="w-full py-3 rounded-field text-base font-bold bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 text-white hover:from-primary-600 hover:via-secondary-600 hover:to-accent-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              class="w-full py-3 rounded-field text-base font-bold bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium transition-all"
             >
               <span v-if="loading" class="flex items-center justify-center space-x-2">
                 <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -146,7 +144,7 @@
         </div>
 
         <!-- Alternative Method Card -->
-        <div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-box p-6 border-2 border-gray-200 shadow-soft">
+        <div class="mt-6 bg-gray-50 rounded-box p-6 border-2 border-gray-200 shadow-soft">
           <h3 class="font-bold mb-3 text-sm flex items-center space-x-2">
             <span class="text-lg">💡</span>
             <span>Alternative Method:</span>

@@ -5,14 +5,12 @@
         <!-- Logo and Title -->
         <div class="text-center mb-8">
           <div class="flex justify-center mb-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-accent-500 to-accent-600 rounded-box flex items-center justify-center shadow-strong">
+            <div class="w-16 h-16 bg-secondary-500 rounded-box flex items-center justify-center shadow-strong">
               <span class="text-4xl">🎯</span>
             </div>
           </div>
-          <h1 class="text-4xl font-bold mb-2">
-            <span class="bg-gradient-to-r from-accent-600 to-secondary-600 bg-clip-text text-transparent">
+          <h1 class="text-4xl font-bold mb-2 text-gray-900">
               Join the Game
-            </span>
           </h1>
           <p class="text-gray-600">Create your account to get started</p>
         </div>
@@ -20,7 +18,7 @@
         <!-- Form Card -->
         <div class="bg-white rounded-box shadow-strong p-8 border-2 border-gray-100">
           <div v-if="success" class="space-y-4">
-            <div class="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 text-green-700 px-4 py-4 rounded-field">
+            <div class="bg-green-50 border-2 border-green-300 text-green-700 px-4 py-4 rounded-field">
               <div class="flex items-center space-x-2 mb-2">
                 <span class="text-2xl">✓</span>
                 <span class="font-bold text-lg">Registration successful!</span>
@@ -31,14 +29,14 @@
             </div>
             <NuxtLink
               to="/login"
-              class="w-full py-3 rounded-field text-base font-bold bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:from-primary-600 hover:to-secondary-600 shadow-medium transition-all transform hover:scale-[1.02] flex items-center justify-center"
+              class="w-full py-3 rounded-field text-base font-bold bg-primary-500 text-white hover:bg-primary-600 shadow-medium transition-all flex items-center justify-center"
             >
               Go to Login
             </NuxtLink>
           </div>
 
           <form v-else @submit.prevent="handleRegister" class="space-y-5">
-            <div v-if="error" class="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 text-red-700 px-4 py-3 rounded-field flex items-center space-x-2">
+            <div v-if="error" class="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-field flex items-center space-x-2">
               <span class="text-xl">⚠️</span>
               <span class="font-medium">{{ error }}</span>
             </div>
@@ -53,7 +51,7 @@
                 type="text"
                 required
                 minlength="3"
-                class="w-full px-4 py-3 rounded-field border-2 border-gray-300 focus:border-accent-500 focus:ring-2 focus:ring-accent-200 transition-all outline-none"
+                class="w-full px-4 py-3 rounded-field border-2 border-gray-300 focus:border-secondary-500 focus:ring-2 focus:ring-secondary-200 transition-all outline-none"
                 placeholder="johndoe"
               />
             </div>
@@ -94,7 +92,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="w-full py-3 rounded-field text-base font-bold bg-gradient-to-r from-accent-500 to-secondary-500 text-white hover:from-accent-600 hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              class="w-full py-3 rounded-field text-base font-bold bg-secondary-500 text-white hover:bg-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium transition-all"
             >
               <span v-if="loading" class="flex items-center justify-center space-x-2">
                 <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -110,7 +108,7 @@
           <div v-if="!success" class="mt-8 pt-6 border-t-2 border-gray-100">
             <p class="text-center text-sm text-gray-600">
               Already have an account?
-              <NuxtLink to="/login" class="font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent hover:from-primary-700 hover:to-secondary-700">
+              <NuxtLink to="/login" class="font-bold text-primary-600 hover:text-primary-700">
                 Login here
               </NuxtLink>
             </p>
