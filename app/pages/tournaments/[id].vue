@@ -1146,7 +1146,7 @@ const confirmLeaveTeam = async (teamId: string) => {
     })
 
     // Redirect to tournaments list
-    navigateTo('/tournaments')
+    await navigateTo('/tournaments')
   } catch (e: any) {
     alert(e.data?.message || 'Failed to leave team')
   }

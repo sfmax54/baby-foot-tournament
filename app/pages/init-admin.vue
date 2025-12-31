@@ -186,7 +186,7 @@ onMounted(async () => {
     const response = await $fetch('/api/auth/admin-exists')
     if (response.adminExists) {
       // Admin already exists, redirect to home
-      navigateTo('/')
+      await navigateTo('/')
     }
   } catch (e) {
     console.error('Failed to check admin existence:', e)
@@ -211,8 +211,8 @@ const startRedirectCountdown = () => {
   }, 1000)
 
   // Redirect after 5 seconds
-  redirectTimer = setTimeout(() => {
-    navigateTo('/login')
+  redirectTimer = setTimeout(async () => {
+    await navigateTo('/login')
   }, 5000)
 }
 
