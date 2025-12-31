@@ -53,7 +53,7 @@ export const useAuth = () => {
         method: 'POST'
       })
       user.value = null
-      navigateTo('/login')
+      await navigateTo('/login')
     } catch (error) {
       console.error('Logout failed:', error)
     }
